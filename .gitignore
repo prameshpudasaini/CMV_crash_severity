@@ -1,0 +1,6 @@
+ignore
+.RData
+.Rproj.user
+.Rhistory
+CMV_crash_severity.Rproj
+.DS_Store
