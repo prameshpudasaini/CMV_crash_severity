@@ -1,6 +1,7 @@
 import os
 import pandas as pd
-import re
+# import re
+from functools import reduce
 
 os.chdir(r"/Users/prameshpudasaini/Library/CloudStorage/OneDrive-UniversityofArizona/GitHub/CMV_crash_severity")
 
@@ -403,4 +404,27 @@ aadt_sut_mdf.drop_duplicates(inplace = True)
 
 len(aadt_sut_mdf.IncidentID.unique())
 
+# =============================================================================
+# merge all roadway info
+# =============================================================================
 
+# list of datasets with roadway info for unique incidents
+road_df_list = [c_mdf, g_mdf, t_mdf, m_mdf, l_mdf, ls_mdf, rs_mdf, swl_mdf, swr_mdf, aadt_mdf, aadt_sut_mdf]
+
+# remove RouteName and MP columns
+road_df_list = [df.drop(columns = ['RouteName', 'MP'], errors = 'ignore') for df in road_df_list]
+
+# merge all on IncidentID
+road_df = reduce(lambda left, right: pd.merge(left, right, on = 'IncidentID', how = 'outer'), road_df_list)
+
+# =============================================================================
+# merge roadway and crash info
+# =============================================================================
+
+fdf = pd.merge(mdf, road_df, on = 'IncidentID', how = 'outer')
+fdf.columns
+
+df_num = fdf.describe(include = [float, int]).T
+df_cat = fdf.describe(include = 'object').T
+
+fdf.to_csv("ignore/merged_crash_roadway_data.csv", index = False)
