@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-# import re
 from functools import reduce
 
 os.chdir(r"/Users/prameshpudasaini/Library/CloudStorage/OneDrive-UniversityofArizona/GitHub/CMV_crash_severity")
@@ -10,15 +9,6 @@ def remove_whitespace(xdf):
     xdf = xdf.apply(lambda col: col.str.strip() if col.dtype == 'object' or pd.api.types.is_string_dtype(col) else col)
     return xdf
 
-# # function to extract base route name
-# def extract_base_route(route):
-#     route = route.strip()
-#     # match standard format: starts with 'I', then optional space, 3 digits
-#     match = re.match(r'^(I)\s*0*(\d{2,3})', route)
-#     if match:
-#         return f"{match.group(1)} {int(match.group(2)):03d}"
-#     return route # retain route for unmatchables
-
 # =============================================================================
 # merged data
 # =============================================================================
@@ -27,7 +17,7 @@ def remove_whitespace(xdf):
 mdf = pd.read_csv("ignore/2021-24_merged_data.csv", low_memory = False)
 route_names = list(mdf.RouteName.unique())
 
-# create milepost dataset and update route
+# create milepost dataset and update MP number
 mpdf = mdf.copy()[['IncidentID', 'RouteName', 'MPNum', 'MPOffset']]
 mpdf['MP'] = mpdf['MPNum'] + mpdf['MPOffset']
 
@@ -51,6 +41,7 @@ fc_df = fc_df[['RouteId', 'FromMeasure', 'ToMeasure', 'FunctionalClass']]
 
 # remove whitespace and filter route names
 fc_df = remove_whitespace(fc_df)
+fc_df['RouteId'].unique()
 fc_df = fc_df[fc_df['RouteId'].isin(route_names)]
 
 # inner merge where RouteName and RouteId are same
@@ -157,7 +148,7 @@ t_df = t_df[t_df['RouteId'].isin(route_names)]
 t_df.RouteId.unique()
 t_df.TerrainType.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 t_mdf = mpdf.merge(t_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -189,7 +180,7 @@ m_df = m_df[m_df['RouteId'].isin(route_names)]
 m_df.RouteId.unique()
 m_df.MedianType.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 m_mdf = mpdf.merge(m_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -217,7 +208,7 @@ l_df = l_df[l_df['RouteId'].isin(route_names)]
 
 l_df.RouteId.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 l_mdf = mpdf.merge(l_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -246,7 +237,7 @@ ls_df = ls_df[ls_df['RouteId'].isin(route_names)]
 ls_df.RouteId.unique()
 ls_df.SurfaceType.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 ls_mdf = mpdf.merge(ls_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -276,7 +267,7 @@ rs_df = rs_df[rs_df['RouteId'].isin(route_names)]
 rs_df.RouteId.unique()
 rs_df.SurfaceType.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 rs_mdf = mpdf.merge(rs_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -308,7 +299,7 @@ swl_df = swl_df[swl_df['RouteId'].isin(route_names)]
 
 swl_df.RouteId.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 swl_mdf = mpdf.merge(swl_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -338,7 +329,7 @@ swr_df = swr_df[swr_df['RouteId'].isin(route_names)]
 
 swr_df.RouteId.unique()
 
-# inner merge where RouteName_base and RouteId are same
+# inner merge where RouteName and RouteId are same
 swr_mdf = mpdf.merge(swr_df, left_on = 'RouteName', right_on = 'RouteId', how = 'inner')
 
 # filter rows where MP is between FromMeasure and ToMeasure
@@ -405,11 +396,39 @@ aadt_sut_mdf.drop_duplicates(inplace = True)
 len(aadt_sut_mdf.IncidentID.unique())
 
 # =============================================================================
-# merge all roadway info
+# AADT combination truck
+# =============================================================================
+
+# read data and select relevant columns
+aadt_ct_df = pd.read_csv("ignore/Roadway Data/HPMS_2023_AADT_Combinationtruck.csv")
+aadt_ct_df = aadt_ct_df[['RouteId', 'FromMeasure', 'ToMeasure', 'AADTCombination']]
+aadt_ct_df.RouteId.unique()
+
+# remove whitespace and filter route names
+aadt_ct_df = remove_whitespace(aadt_ct_df)
+aadt_ct_df = aadt_ct_df[aadt_ct_df['RouteId'].isin(base_route_names)]
+
+aadt_ct_df.RouteId.unique()
+
+# inner merge where RouteName_base and RouteId are same
+aadt_ct_mdf = mpdf.merge(aadt_ct_df, left_on = 'RouteName_base', right_on = 'RouteId', how = 'inner')
+
+# filter rows where MP is between FromMeasure and ToMeasure
+aadt_ct_mdf = aadt_ct_mdf[aadt_ct_mdf['MP'].between(aadt_ct_mdf['FromMeasure'], aadt_ct_mdf['ToMeasure'], inclusive = 'both')]
+
+# remove duplicate rows
+aadt_ct_mdf = aadt_ct_mdf[['IncidentID', 'RouteName', 'MP', 'AADTCombination']]
+aadt_ct_mdf.drop_duplicates(inplace = True)
+
+len(aadt_ct_mdf.IncidentID.unique())
+
+# =============================================================================
+# merge all roadway info with crash data
 # =============================================================================
 
 # list of datasets with roadway info for unique incidents
-road_df_list = [c_mdf, g_mdf, t_mdf, m_mdf, l_mdf, ls_mdf, rs_mdf, swl_mdf, swr_mdf, aadt_mdf, aadt_sut_mdf]
+road_df_list = [c_mdf, g_mdf, t_mdf, m_mdf, l_mdf, ls_mdf, rs_mdf, swl_mdf, swr_mdf, 
+                aadt_mdf, aadt_sut_mdf, aadt_ct_mdf]
 
 # remove RouteName and MP columns
 road_df_list = [df.drop(columns = ['RouteName', 'MP'], errors = 'ignore') for df in road_df_list]
@@ -417,14 +436,6 @@ road_df_list = [df.drop(columns = ['RouteName', 'MP'], errors = 'ignore') for df
 # merge all on IncidentID
 road_df = reduce(lambda left, right: pd.merge(left, right, on = 'IncidentID', how = 'outer'), road_df_list)
 
-# =============================================================================
-# merge roadway and crash info
-# =============================================================================
-
+# merge with crash data and save
 fdf = pd.merge(mdf, road_df, on = 'IncidentID', how = 'outer')
-fdf.columns
-
-df_num = fdf.describe(include = [float, int]).T
-df_cat = fdf.describe(include = 'object').T
-
 fdf.to_csv("ignore/merged_crash_roadway_data.csv", index = False)
