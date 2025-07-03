@@ -38,7 +38,8 @@ def preprocessed_data_CMV(year):
     # exclude buses for CMVs
     # udf = unit.copy()[trucks | buses | GVWR | hazmats]
     # print(f"CMV crashes: {len(udf.IncidentID.unique())}") # 15,044
-    udf = unit.copy()[trucks | GVWR | hazmats]
+    # udf = unit.copy()[trucks | GVWR | hazmats]
+    udf = unit.copy()[trucks]
     print(f"CMV crashes: {len(udf.IncidentID.unique())}") # 17,296
     
     # CMV incidents
@@ -159,12 +160,14 @@ def preprocessed_data_CMV(year):
 
 # process CMV crash data for multiple years
 list_cdf, list_udf, list_pdf = [], [], []
-for year in range(2021, 2024+1):
+for year in range(2018, 2024+1):
     print(f"\n***** Year: {year} *****")
-    data = preprocessed_data_CMV(year)
-    list_cdf.append(data['cdf'])
-    list_udf.append(data['udf'])
-    list_pdf.append(data['pdf'])
+    
+    if year != 2020:
+        data = preprocessed_data_CMV(year)
+        list_cdf.append(data['cdf'])
+        list_udf.append(data['udf'])
+        list_pdf.append(data['pdf'])
     
 cdf = pd.concat(list_cdf, ignore_index = True)
 udf = pd.concat(list_udf, ignore_index = True)
@@ -172,6 +175,6 @@ pdf = pd.concat(list_pdf, ignore_index = True)
 
 os.chdir(r"/Users/prameshpudasaini/Library/CloudStorage/OneDrive-UniversityofArizona/GitHub/CMV_crash_severity")
 
-cdf.to_csv("ignore/2021-24_incident.csv", index = False)
-udf.to_csv("ignore/2021-24_unit.csv", index = False)
-pdf.to_csv("ignore/2021-24_person.csv", index = False)
+cdf.to_csv("ignore/processed_data/2018-24_incident.csv", index = False)
+udf.to_csv("ignore/processed_data/2018-24_unit.csv", index = False)
+pdf.to_csv("ignore/processed_data/2018-24_person.csv", index = False)
