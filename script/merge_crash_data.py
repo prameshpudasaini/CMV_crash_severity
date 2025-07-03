@@ -4,13 +4,13 @@ import pandas as pd
 os.chdir(r"/Users/prameshpudasaini/Library/CloudStorage/OneDrive-UniversityofArizona/GitHub/CMV_crash_severity")
 
 # read processed incident, unit, and person datasets
-file_incident = '2021-24_incident.csv'
-file_unit = '2021-24_unit.csv'
-file_person = '2021-24_person.csv'
+file_incident = '2018-24_incident.csv'
+file_unit = '2018-24_unit.csv'
+file_person = '2018-24_person.csv'
 
-idf = pd.read_csv(os.path.join("ignore", file_incident), low_memory = False)
-udf = pd.read_csv(os.path.join("ignore", file_unit), low_memory = False)
-pdf = pd.read_csv(os.path.join("ignore", file_person), low_memory = False)
+idf = pd.read_csv(os.path.join("ignore/processed_data", file_incident), low_memory = False)
+udf = pd.read_csv(os.path.join("ignore/processed_data", file_unit), low_memory = False)
+pdf = pd.read_csv(os.path.join("ignore/processed_data", file_person), low_memory = False)
 
 # =============================================================================
 # incident data
@@ -20,26 +20,28 @@ pdf = pd.read_csv(os.path.join("ignore", file_person), low_memory = False)
 idf['on_mainline'] = ~idf['GeocodeOnRoad'].str.contains('exit|ramp', case = False, na = False)
 idf['on_mainline'] = idf['on_mainline'].astype(int)
 
+# select crashes only on the mainline
+idf = idf[idf['on_mainline'] == 1]
+
+# select single vehicle crashes
+idf = idf[idf['TotalUnits'] == 1]
+single_veh_incidents = list(idf['IncidentID'].unique())
+
 # drop irrelevant columns from incident
 i_cols_drop = ['TotalMotorists', 'TotalNonMotorists', 'TotalInjuries', 'TotalFatalities', 
              'TotalMotoristsInjuries', 'TotalNonMotoristsInjuries', 'TotalMotoristsFatalities', 
              'TotalNonMotoristsFatalities', 'MedicalTransportFlag', 'SchoolBusRelatedFlag',
-             'HazardousFlag', 'IntersectionType', 'JunctionRelation', 'SecondaryCrashFlag']
+             'HazardousFlag', 'IntersectionType', 'JunctionRelation', 'SecondaryCrashFlag',
+             'on_mainline', 'TotalUnits', 'GeocodeCrossingFeatureName']
 idf.drop(i_cols_drop, axis = 1, inplace = True)
 
 # =============================================================================
 # unit data
 # =============================================================================
 
-# CMV at fault
-udf['cmv_at_fault'] = (udf['UnitNumber'] == 1 & udf['BodyStyle'].isin(range(54,88+1))).astype(int)
-
-print(f"CMV at fault: {sum(udf['cmv_at_fault'])}")
-print(f"Units at fault: {sum(udf['UnitNumber'] == 1)}")
-
-# at fault data
-udf = udf[udf['UnitNumber'] == 1]
-at_fault_units = list(udf.UnitID.unique())
+# select single vehicle incidents
+udf = udf[udf['IncidentID'].isin(single_veh_incidents)]
+single_veh_units = list(udf['UnitID'].unique())
 
 # environmental condition
 udf['sun_glare'] = (udf['EnvCondition1'] == 10).astype(int)
@@ -69,6 +71,9 @@ udf.drop(u_cols_drop, axis = 1, inplace = True)
 # person data
 # =============================================================================
 
+# select single vehicle units
+pdf = pdf[pdf['UnitID'].isin(single_veh_units)]
+
 # female involved in the incident
 pdf['has_female'] = pdf.groupby('IncidentID')['Sex'].transform(lambda x: int('F' in x.values))
 
@@ -81,8 +86,8 @@ pdf['safety_device_not_used'] = pdf.groupby('IncidentID')['SafetyDevice'].transf
 # airbag not deployed for at least on person
 pdf['airbag_not_deployed'] = pdf.groupby('IncidentID')['Airbag'].transform(lambda x: int(1 in x.values))
 
-# filter person data for at-fault units and driver (person type: 1)
-pdf = pdf[(pdf.UnitID.isin(at_fault_units)) & (pdf['PersonType'] == 1)]
+# filter person data for driver (person type: 1)
+pdf = pdf[pdf['PersonType'] == 1]
 
 # fell asleep or fatigue
 pdf['fell_asleep_fatigued'] = (pdf['Physical3'] == 3).astype(int)
@@ -103,4 +108,4 @@ pdf.drop(p_cols_drop, axis = 1, inplace = True)
 
 mdf = idf.merge(udf, on = 'IncidentID', how = 'left')
 mdf = mdf.merge(pdf, on = 'IncidentID', how = 'left')
-mdf.to_csv("ignore/2021-24_merged_data.csv", index = False)
+mdf.to_csv("ignore/2018-24_merged_crash_data.csv", index = False)
