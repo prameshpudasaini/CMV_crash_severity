@@ -108,4 +108,10 @@ pdf.drop(p_cols_drop, axis = 1, inplace = True)
 
 mdf = idf.merge(udf, on = 'IncidentID', how = 'left')
 mdf = mdf.merge(pdf, on = 'IncidentID', how = 'left')
+
+# check injury severity values and filter for severity levels 1-5
+mdf['InjurySeverity'].value_counts(dropna = False)
+mdf = mdf[mdf['InjurySeverity'].isin(list([1, 2, 3, 4, 5]))]
+
+# save file
 mdf.to_csv("ignore/2018-24_merged_crash_data.csv", index = False)

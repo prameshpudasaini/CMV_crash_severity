@@ -14,7 +14,7 @@ def remove_whitespace(xdf):
 # =============================================================================
 
 # read merged (incident, unit, person) data
-mdf = pd.read_csv("ignore/2021-24_merged_data.csv", low_memory = False)
+mdf = pd.read_csv("ignore/2018-24_merged_crash_data.csv", low_memory = False)
 route_names = list(mdf.RouteName.unique())
 
 # create milepost dataset and update MP number
@@ -438,4 +438,4 @@ road_df = reduce(lambda left, right: pd.merge(left, right, on = 'IncidentID', ho
 
 # merge with crash data and save
 fdf = pd.merge(mdf, road_df, on = 'IncidentID', how = 'outer')
-fdf.to_csv("ignore/merged_crash_roadway_data.csv", index = False)
+fdf.to_csv("ignore/2018-24_merged_crash_roadway_data.csv", index = False)
