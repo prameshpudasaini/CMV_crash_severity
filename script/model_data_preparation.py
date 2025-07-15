@@ -17,9 +17,9 @@ sorted(list(df['Weather'].unique()))
 
 df['is_weather_clear_cloudy'] = (df['Weather'].isin([1,2])).astype(int)
 df['is_weather_rainy_snowy'] = (df['Weather'].isin([3,4,5])).astype(int)
-# df['is_weather_others'] = (df['Weather'].isin([7,8,97,99])).astype(int)
+df['is_weather_others'] = (df['Weather'].isin([7,8,97,99])).astype(int)
 
-sum(df['is_weather_clear_cloudy']) + sum(df['is_weather_rainy_snowy']) - len(df)
+sum(df['is_weather_clear_cloudy']) + sum(df['is_weather_rainy_snowy']) + sum(df['is_weather_others'])
 df.drop('Weather', axis = 1, inplace = True)
 
 # =============================================================================
@@ -46,12 +46,15 @@ def classify_light_condition(hour):
 df.loc[df['LightCondition'] == 51, 'LightCondition'] = (
     df.loc[df['LightCondition'] == 51, 'Hour'].apply(classify_light_condition)
 )
+
+df['LightCondition'].value_counts(dropna = False)
+sorted(list(df['LightCondition'].unique()))
     
 df['is_daylight'] = (df['LightCondition'].isin([1])).astype(int)
 df['is_dawn_dusk'] = (df['LightCondition'].isin([2,3])).astype(int)
 df['is_dark'] = (df['LightCondition'].isin([4,5,6])).astype(int)
 
-sum(df['is_daylight']) + sum(df['is_dawn_dusk']) + sum(df['is_dark']) - len(df)
+sum(df['is_daylight']) + sum(df['is_dawn_dusk']) + sum(df['is_dark'])
 df.drop(['Hour', 'LightCondition'], axis = 1, inplace = True)
 
 # =============================================================================
@@ -64,7 +67,9 @@ df['sun_glare'].value_counts(dropna = False)
 df.drop('sun_glare', axis = 1, inplace = True)
 
 df['stopped_vehicle'].value_counts(dropna = False)
+df.drop('stopped_vehicle', axis = 1, inplace = True)
 
+df['day_of_week'].value_counts(dropna = False)
 df['is_weekday'] = (df['day_of_week'] == 'weekday').astype(int)
 df.drop('day_of_week', axis = 1, inplace = True)
 
@@ -89,11 +94,11 @@ df.drop(['FirstHarmfulEvent', 'EventSequence1', 'EventSequence2'], axis = 1, inp
 df['Age'].describe()
 df['Age'].value_counts(dropna = False)
 
-df['is_age_young'] = np.where(df['Age'] <= 30, 1, 0)
-df['is_age_middle'] = np.where(df['Age'].between(31,59), 1, 0)
-df['is_age_old'] = np.where(df['Age'].between(60,130), 1, 0)
+df['is_age_young'] = np.where(df['Age'] <= 24, 1, 0)
+df['is_age_middle'] = np.where(df['Age'].between(25,64), 1, 0)
+df['is_age_old'] = np.where(df['Age'].between(65,130), 1, 0)
 
-sum(df['is_age_young']) + sum(df['is_age_middle']) + sum(df['is_age_old']) - len(df)
+sum(df['is_age_young']) + sum(df['is_age_middle']) + sum(df['is_age_old'])
 df.drop('Age', axis = 1, inplace = True)
 
 # =============================================================================
@@ -103,15 +108,13 @@ df.drop('Age', axis = 1, inplace = True)
 df['Sex'].value_counts(dropna = False)
 
 df['is_male'] = np.where(df['Sex'] == 'M', 1, 0)
-df['is_female'] = np.where(df['Sex'] == 'F', 1, 0)
-
-sum(df['is_male']) + sum(df['is_female']) - len(df)
 df.drop('Sex', axis = 1, inplace = True)
 
 # =============================================================================
 # posted speed
 # =============================================================================
 
+df['PostedSpeed'].value_counts(dropna = False)
 df['PostedSpeed'].describe()
 
 df['is_PSL_below_65'] = np.where(df['PostedSpeed'] <= 65, 1, 0)
@@ -120,6 +123,8 @@ df.drop('PostedSpeed', axis = 1, inplace = True)
 # =============================================================================
 # AADT
 # =============================================================================
+
+df['AADT'].describe()
 
 df['log_AADT'] = np.log(df['AADT'])
 df['is_AADT_trucks_below_25_percent'] = np.where(df['AADT_Trucks_Percent'] <= 25, 1, 0)
@@ -143,12 +148,7 @@ df.drop(['RoadAlignment', 'RoadGrade'], axis = 1, inplace = True)
 
 df['NumberOfLanes'].value_counts(dropna = False)
 
-df['is_lanes_2_below'] = np.where(df['NumberOfLanes'].notna(),
-                                  np.where(df['NumberOfLanes'] <= 2, 1, 0),
-                                  np.nan)
-df['is_lanes_2_above'] = np.where(df['NumberOfLanes'] > 2, 1, 0)
-
-sum(df['is_lanes_2_below']) + sum(df['is_lanes_2_above']) - len(df)
+df['is_lanes_2_below'] = (df['NumberOfLanes'] <= 2).astype(int)
 df.drop('NumberOfLanes', axis = 1, inplace = True)
 
 # =============================================================================
@@ -167,3 +167,7 @@ sum(df['is_left_shoulder_short']) + sum(df['is_left_shoulder_mid']) + sum(df['is
 sum(df['is_right_shoulder_short']) + sum(df['is_right_shoulder_mid']) + sum(df['is_right_shoulder_long']) - len(df)
 
 df.drop(['avg_shoulder_width_left', 'avg_shoulder_width_right'], axis = 1, inplace = True)
+
+# check for NA values and save dataset
+df.isna().any()
+df.to_csv("ignore/model_data_final.csv", index = False)
