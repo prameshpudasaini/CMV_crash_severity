@@ -29,6 +29,32 @@ def classify_time(hour):
 df['time_of_day'] = df['IncidentDateTime'].dt.hour.apply(classify_time)
 
 # =============================================================================
+# update missing shoulder data
+# =============================================================================
+
+# load data with missing values manually collected
+sdf = pd.read_csv("ignore/missing_shoulder_lanes_data/2018-24_merged_crash_roadway_data_updated_shoulder.csv")
+sdf = sdf[['IncidentID', 'NumberOfLanes', 'avg_shoulder_width_left', 'avg_shoulder_width_right']]
+
+# update values in df
+df.set_index('IncidentID', inplace = True)
+sdf.set_index('IncidentID', inplace = True)
+df.update(sdf[['NumberOfLanes', 'avg_shoulder_width_left', 'avg_shoulder_width_right']])
+df.reset_index(inplace = True)
+
+# =============================================================================
+# mising/unknown age and sex
+# =============================================================================
+
+df['Sex'].value_counts(dropna = False)
+df['Age'].describe()
+
+df = df[df['Sex'].isin(['M', 'F'])]
+df['Sex'].value_counts(dropna = False)
+
+df = df[df['Age'] <= 150]
+
+# =============================================================================
 # descriptive summary
 # =============================================================================
 
