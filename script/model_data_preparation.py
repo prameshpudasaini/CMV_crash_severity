@@ -15,11 +15,7 @@ df['IncidentDateTime'] = pd.to_datetime(df['IncidentDateTime'])
 df['Weather'].value_counts(dropna = False)
 sorted(list(df['Weather'].unique()))
 
-df['is_weather_clear_cloudy'] = (df['Weather'].isin([1,2])).astype(int)
-df['is_weather_rainy_snowy'] = (df['Weather'].isin([3,4,5])).astype(int)
-df['is_weather_others'] = (df['Weather'].isin([7,8,97,99])).astype(int)
-
-sum(df['is_weather_clear_cloudy']) + sum(df['is_weather_rainy_snowy']) + sum(df['is_weather_others'])
+df['is_weather_clear'] = (df['Weather'].isin([1,2])).astype(int)
 df.drop('Weather', axis = 1, inplace = True)
 
 # =============================================================================
@@ -49,12 +45,8 @@ df.loc[df['LightCondition'] == 51, 'LightCondition'] = (
 
 df['LightCondition'].value_counts(dropna = False)
 sorted(list(df['LightCondition'].unique()))
-    
-df['is_daylight'] = (df['LightCondition'].isin([1])).astype(int)
-df['is_dawn_dusk'] = (df['LightCondition'].isin([2,3])).astype(int)
-df['is_dark'] = (df['LightCondition'].isin([4,5,6])).astype(int)
 
-sum(df['is_daylight']) + sum(df['is_dawn_dusk']) + sum(df['is_dark'])
+df['is_dark'] = (df['LightCondition'].isin([4,5,6])).astype(int)
 df.drop(['Hour', 'LightCondition'], axis = 1, inplace = True)
 
 # =============================================================================
@@ -155,19 +147,18 @@ df.drop('NumberOfLanes', axis = 1, inplace = True)
 # shoulder width
 # =============================================================================
 
-df['is_left_shoulder_short'] = np.where(df['avg_shoulder_width_left'] <= 4, 1, 0)
-df['is_left_shoulder_mid'] = np.where(df['avg_shoulder_width_left'].between(4,10, inclusive = 'neither'), 1, 0)
-df['is_left_shoulder_long'] = np.where(df['avg_shoulder_width_left'] >= 10, 1, 0)
+df['avg_shoulder_width_left'].describe()
+df['avg_shoulder_width_right'].describe()
 
-df['is_right_shoulder_short'] = np.where(df['avg_shoulder_width_right'] <= 4, 1, 0)
-df['is_right_shoulder_mid'] = np.where(df['avg_shoulder_width_right'].between(4,10, inclusive = 'neither'), 1, 0)
-df['is_right_shoulder_long'] = np.where(df['avg_shoulder_width_right'] >= 10, 1, 0)
+# https://ops.fhwa.dot.gov/publications/fhwahop15023/ch7.htm
+df['is_left_shoulder_short'] = (df['avg_shoulder_width_left'] <= 4).astype(int)
+df['is_right_shoulder_short'] = (df['avg_shoulder_width_right'] <= 10).astype(int)
 
-sum(df['is_left_shoulder_short']) + sum(df['is_left_shoulder_mid']) + sum(df['is_left_shoulder_long']) - len(df)
-sum(df['is_right_shoulder_short']) + sum(df['is_right_shoulder_mid']) + sum(df['is_right_shoulder_long']) - len(df)
+df['is_left_shoulder_short'].value_counts(dropna = False)
+df['is_right_shoulder_short'].value_counts(dropna = False)
 
 df.drop(['avg_shoulder_width_left', 'avg_shoulder_width_right'], axis = 1, inplace = True)
 
 # check for NA values and save dataset
 df.isna().any()
-df.to_csv("ignore/model_data_final.csv", index = False)
+df.to_csv("ignore/model_data_final_v2.csv", index = False)
