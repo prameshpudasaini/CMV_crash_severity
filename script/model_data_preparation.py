@@ -73,10 +73,6 @@ df['FirstHarmfulEvent'].value_counts(dropna = False)
 sorted(list(df['FirstHarmfulEvent'].unique()))
 
 df['first_harmful_overturn_rollover'] = (df['FirstHarmfulEvent'].isin([1])).astype(int)
-df['first_harmful_fixed_object'] = (df['FirstHarmfulEvent'].isin([30,31,33,34,35,39,40,41,42,43,44,45,49])).astype(int)
-df['first_hamrful_guardrail'] = (df['FirstHarmfulEvent'].isin([29,36,37,38,46])).astype(int)
-
-sum(df['first_harmful_fixed_object']) + sum(df['first_hamrful_guardrail']) + sum(df['first_harmful_overturn_rollover'])
 df.drop(['FirstHarmfulEvent', 'EventSequence1', 'EventSequence2'], axis = 1, inplace = True)
 
 # =============================================================================
@@ -86,12 +82,12 @@ df.drop(['FirstHarmfulEvent', 'EventSequence1', 'EventSequence2'], axis = 1, inp
 df['Age'].describe()
 df['Age'].value_counts(dropna = False)
 
-df['is_age_young'] = np.where(df['Age'] <= 24, 1, 0)
-df['is_age_middle'] = np.where(df['Age'].between(25,64), 1, 0)
-df['is_age_old'] = np.where(df['Age'].between(65,130), 1, 0)
+# df['is_age_young'] = np.where(df['Age'] <= 24, 1, 0)
+# df['is_age_middle'] = np.where(df['Age'].between(25,64), 1, 0)
+# df['is_age_old'] = np.where(df['Age'].between(65,130), 1, 0)
 
-sum(df['is_age_young']) + sum(df['is_age_middle']) + sum(df['is_age_old'])
-df.drop('Age', axis = 1, inplace = True)
+# sum(df['is_age_young']) + sum(df['is_age_middle']) + sum(df['is_age_old'])
+# df.drop('Age', axis = 1, inplace = True)
 
 # =============================================================================
 # sex
@@ -99,7 +95,7 @@ df.drop('Age', axis = 1, inplace = True)
 
 df['Sex'].value_counts(dropna = False)
 
-df['is_male'] = np.where(df['Sex'] == 'M', 1, 0)
+df['is_male_driver'] = np.where(df['Sex'] == 'M', 1, 0)
 df.drop('Sex', axis = 1, inplace = True)
 
 # =============================================================================
@@ -161,4 +157,4 @@ df.drop(['avg_shoulder_width_left', 'avg_shoulder_width_right'], axis = 1, inpla
 
 # check for NA values and save dataset
 df.isna().any()
-df.to_csv("ignore/model_data_final_v2.csv", index = False)
+df.to_csv("ignore/model_data_final_v3.csv", index = False)
